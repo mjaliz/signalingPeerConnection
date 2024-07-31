@@ -72,6 +72,10 @@ const createPeerConnection = (offerObj) => {
       peerConnection.addTrack(track, localStream);
     });
 
+    peerConnection.addEventListener("signalingstatechange", (event) => {
+      console.log(event);
+    });
+
     peerConnection.addEventListener("icecandidate", (e) => {
       console.log("....................Ice candidate found!..................");
       console.log(e);
