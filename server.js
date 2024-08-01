@@ -10,7 +10,7 @@ const cert = fs.readFileSync("cert.crt");
 
 const expressServer = https.createServer({ key, cert }, app);
 const io = socketio(expressServer);
-expressServer.listen(8181, "192.168.1.12");
+expressServer.listen(8181, "0.0.0.0");
 
 const offers = [];
 const connectedSockets = [];
@@ -47,7 +47,7 @@ io.on("connection", (socket) => {
     socket.broadcast.emit("newOfferAwaiting", offers.slice(-1));
   });
 
-  socket.on("newAnswer", (offerObj) => {
+  socket.on("newAnswer", (offerObj, ackFunction) => {
     console.log("new Answer", offerObj);
     // Emit this answer (offerObj) back to CLIENT1
     // in order to that we need CLIENT1'a socket id
@@ -67,6 +67,8 @@ io.on("connection", (socket) => {
       console.log("No socket to update");
       return;
     }
+    // send back to answerer all the iceCandidates we have already collected
+    ackFunction(offerToUpdate.offerIceCandidates);
     offerToUpdate.answer = offerObj.answer;
     offerToUpdate.answererUserName = userName;
     // socket has a .to() method which allows emiting to a "room"
@@ -81,7 +83,16 @@ io.on("connection", (socket) => {
         (o) => o.offererUserName === iceUserName
       );
       if (offerInOffers) {
+        // this ice is coming from the offerer. Send to the answerer
         offerInOffers.offerIceCandidates.push(iceCandidate);
+        // 1.When the answerer answers, all the existing ICE candidates are sent
+        // 2.Any candidates that come in after the offer has been answered, will be passed through
+        if (offerInOffers.answererUserName) {
+          // pass it through to the other socket
+        }
+      } else {
+        // this ice is coming from the answerer. Send to the offerer
+        // pass it through to the other socket
       }
     }
   });

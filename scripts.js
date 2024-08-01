@@ -1,7 +1,7 @@
 const userName = "MJ - " + Math.floor(Math.random() * 1000000);
 const password = "Z";
 document.querySelector("#user-name").innerHTML = userName;
-const socket = io.connect("https://192.168.1.12:8181", {
+const socket = io.connect("https://localhost:8181", {
   auth: {
     userName,
     password,
@@ -51,7 +51,12 @@ const answerOffer = async (offerObj) => {
   offerObj.answer = answer;
   console.log("answer Offer", offerObj);
   // Emit the answer to signaling server, so it can emit to CLIENT1
-  socket.emit("newAnswer", offerObj);
+  const offerIceCandidates = await socket.emitWithAck("newAnswer", offerObj);
+  offerIceCandidates.forEach((c) => {
+    peerConnection.addIceCandidate(c);
+    console.log("======= Added Ice candidate======");
+  });
+  console.log("Offffffer", offerIceCandidates);
 };
 
 const addAnswer = async (offerObj) => {
