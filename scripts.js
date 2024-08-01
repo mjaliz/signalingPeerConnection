@@ -1,7 +1,7 @@
 const userName = "MJ - " + Math.floor(Math.random() * 1000000);
 const password = "Z";
 document.querySelector("#user-name").innerHTML = userName;
-const socket = io.connect("https://192.168.1.102:8181", {
+const socket = io.connect("https://192.168.1.12:8181", {
   auth: {
     userName,
     password,
@@ -47,7 +47,11 @@ const answerOffer = async (offerObj) => {
   await createPeerConnection(offerObj);
   const answer = await peerConnection.createAnswer();
   peerConnection.setLocalDescription(answer); // This is CLIENT2 and CLIENT2 uses the answer as localDescription
+  // Add the answer to offerObj so the server knows which answer this is related to
+  offerObj.answer = answer;
   console.log("answer Offer", offerObj);
+  // Emit the answer to signaling server, so it can emit to CLIENT1
+  socket.emit("newAnswer", offerObj);
 };
 
 const fetchUserMedia = () => {
