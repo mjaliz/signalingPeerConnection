@@ -110,4 +110,9 @@ const createPeerConnection = (offerObj) => {
   });
 };
 
+const addNewIceCandidate = (iceCandidate) => {
+  peerConnection.addIceCandidate(iceCandidate);
+  console.log("======= Added Ice candidate======");
+};
+
 document.querySelector("#call").addEventListener("click", call);
