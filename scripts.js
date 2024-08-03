@@ -1,7 +1,7 @@
 const userName = "MJ - " + Math.floor(Math.random() * 1000000);
 const password = "Z";
 document.querySelector("#user-name").innerHTML = userName;
-const socket = io.connect("https://localhost:8181", {
+const socket = io.connect("https://9278-5-239-172-170.ngrok-free.app", {
   auth: {
     userName,
     password,
@@ -69,7 +69,10 @@ const addAnswer = async (offerObj) => {
 const fetchUserMedia = () => {
   return new Promise(async (resolve, reject) => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: true,
+      });
       localVideoEl.srcObject = stream;
       localStream = stream;
       resolve();
@@ -84,7 +87,11 @@ const createPeerConnection = (offerObj) => {
   return new Promise(async (resolve, reject) => {
     peerConnection = await new RTCPeerConnection(peerConfiguration);
 
+    remoteStream = new MediaStream();
+    remoteVideoEl.srcObject = remoteStream;
+
     localStream.getTracks().forEach((track) => {
+      // Add localtracks so that they can be sent one the connection is established
       peerConnection.addTrack(track, localStream);
     });
 
@@ -102,6 +109,13 @@ const createPeerConnection = (offerObj) => {
           didIOffer,
         });
       }
+    });
+    peerConnection.addEventListener("track", (e) => {
+      console.log("Got a track from another peer!!!!!!!!!!!!!!");
+      console.log(e);
+      e.streams[0].getTracks().forEach((track) => {
+        remoteStream.addTrack(track, remoteStream);
+      });
     });
     if (offerObj) {
       peerConnection.setRemoteDescription(offerObj.offer);
